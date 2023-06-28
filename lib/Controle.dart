@@ -104,7 +104,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           tabs: const [
             Tab(icon: Icon(Icons.bluetooth), text: 'Bluetooth'),
             Tab(icon: Icon(Icons.settings), text: 'Configuração'),
-            Tab(icon: Icon(Icons.tune), text: 'Calibração'),
           ],
         ),
       ),
@@ -113,7 +112,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         children: [
           _buildBluetoothTab(),
           _buildA300Tab(),
-          _buildCalibraTab(),
         ],
       ),
     );
@@ -124,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     super.initState();
     Wakelock.enable();
     // Initialize tab controller
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
 
     // Add a listener to the tab controller
     _tabController.addListener(() {
@@ -302,7 +300,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         goToBluetooth();
       });
 
-      _pressCount =
+      //_pressCount =
           1; // Reseta contador da calibração caso desconecte no meio da calibração
     });
 
@@ -596,7 +594,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             return result;
           } else if (code == "Can=") {
             setState(() {
-              _pressCount = 1;
+              //_pressCount = 1;
               isCalibrating = false;
               ativa = false;
             });
@@ -621,21 +619,21 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           } else if (code == "FimC=") {
             final result = "${codeMap[code]} $value ";
             setState(() {
-              _pressCount = 1;
+              //_pressCount = 1;
               isCalibrating = false; // Indica o fim da calibração
             });
             //_receivedMessages.clear(); //
             return result;
           } else if (code == "Ci=") {
-            _pressCount = 2;
+            //_pressCount = 2;
             final result = "${codeMap[code]} $value ";
             return result;
           } else if (code == "Fim1=") {
-            _pressCount = 3;
+            //_pressCount = 3;
             final result = "${codeMap[code]} $value ";
             return result;
           } else if (code == "Fim2=") {
-            _pressCount = 1;
+            //_pressCount = 1;
             final result = "${codeMap[code]} $value ";
             return result;
           } else if (code == "C2=") {
@@ -706,30 +704,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return "Mensagem vazia";
     }
     return result;
-  }
-
-  int _pressCount = 1;
-
-  Future<void> _handleButtonPress() async {
-    //_pressCount++;
-
-    switch (_pressCount) {
-      case 1:
-        // _receivedMessages.clear();
-        await _sendMessage("Calibrar");
-        isCalibrating = true;
-        break;
-      case 2:
-        // _receivedMessages.clear();
-        await _sendMessage("Libera");
-        //_pressCount++;
-        break;
-      case 3:
-        //_receivedMessages.clear();
-        await _sendMessage("Libera");
-        //_pressCount++;
-        break;
-    }
   }
 
   // Method to show a toast message
@@ -1031,15 +1005,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       onPressed: isConnected && !isCalibrating
                           ? () async {
                               if (isConnected) {
-                                // Navega para a página ConfigurationPage e espera pela string de retorno
-                                String? calibracao = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ConfigurationPage(
-                                      connectedDeviceName: _connectedDeviceName,
-                                    ),
-                                  ),
-                                );
 
                                 // Verifica se a string de retorno não é nula
                                 if (calibracao != null && isConnected) {
@@ -1074,665 +1039,5 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCalibraTab() {
-    return SingleChildScrollView(
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 5),
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(25),
-                            topRight: Radius.circular(25.0),
-                          ),
-                          color: Colors.green,
-                        ),
-                        child: AppBar(
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          centerTitle: true,
-                          title: const Text(
-                            'Siga as instruções!',
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        ),
-                      ),
-                      const Divider(thickness: 2, color: Colors.grey),
-                      const SizedBox(height: 2),
-                      Container(
-                        height: 285,
-                        child: isConnected && isCalibrating
-                            ? ListView.builder(
-                                itemCount: _receivedMessages.length,
-                                itemBuilder: (context, index) {
-                                  String processedText =
-                                      _receivedMessages[index];
-                                  return Text(
-                                    processedText,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: 'Noto Sans',
-                                    ),
-                                  );
-                                },
-                              )
-                            : Center(
-                                child: isConnected
-                                    ? roscaLigada
-                                        ? const Text(
-                                            'Rosca Ligada!',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 34,
-                                              fontFamily: 'Noto Sans',
-                                            ),
-                                          )
-                                        : const Text(
-                                            'Calibração desativada! \n \n Aperte (Calibrar) para \ndar início à calibração.',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontFamily: 'Noto Sans',
-                                            ),
-                                          )
-                                    : const Text(
-                                        'Equipamento Desconectado!',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 20,
-                                          fontFamily: 'Noto Sans',
-                                        ),
-                                      ),
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25.0),
-                        ),
-                        backgroundColor: Colors.green,
-                        minimumSize: const Size(100, 50),
-                      ),
-                      onPressed: isConnected && isCalibrating
-                          ? () async {
-                              await _sendMessage("Cancelar");
-
-                              setState(() {
-                                isCalibrating = false;
-                                ativa = false;
-                              });
-                            }
-                          : null,
-
-                      //TODO verificar todas as etapas da calibração, deixar mais robusta
-                      child: const Text('Cancelar', textScaleFactor: 1.7),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25.0),
-                        ),
-                        backgroundColor: Colors.green,
-                        minimumSize: const Size(100, 50),
-                      ),
-                      onPressed: isConnected && !ativa
-                          ? () {
-                              _handleButtonPress();
-                            }
-                          : null,
-                      child: Text('Calibrar $_connectedDeviceName',
-                          textScaleFactor: 1.7),
-                    ),
-                  ],
-                ),
-              ),
-
-              //SizedBox(height: 10), // Espaçamento adicional entre os widgets
-
-              Column(
-                children: [
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 270, maxHeight: 50),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey, width: 1),
-                      borderRadius: BorderRadius.circular(5),
-                      color: Colors.grey[200],
-                    ),
-                    child: isCalibrating && ativa == true
-                        ? Row(
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    controller: _messageTextFieldController,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Digite o peso',
-                                      border: InputBorder.none,
-                                    ),
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                            decimal: true),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(
-                                          RegExp(r'^\d*\.?\d*$')),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ElevatedButton(
-                                  onPressed: isConnected
-                                      ? () async {
-                                          if (isConnected) {
-                                            String message =
-                                                _messageTextFieldController
-                                                    .text;
-                                            try {
-                                              await _sendMessage(
-                                                  "C,$message,F");
-                                            } catch (error) {
-                                              print(
-                                                  'Erro ao enviar a mensagem: $message');
-                                            }
-                                            _messageTextFieldController.clear();
-                                            FocusScope.of(context).unfocus();
-                                          }
-                                        }
-                                      : null,
-                                  child: Text('Enviar', textScaleFactor: 1.7),
-                                ),
-                              ),
-                            ],
-                          )
-                        : null,
-                  ),
-                  const SizedBox(
-                      height: 10), // Espaçamento adicional entre os widgets
-                  IgnorePointer(
-                    ignoring: !(isConnected &&
-                        !ativa), // Define como true quando não estiver ativado
-                    child: GestureDetector(
-                      onLongPress: () async {
-                        if (isConnected && !ativa) {
-                          try {
-                            await _sendMessage("Liga1");
-                            setState(() {
-                              roscaLigada = true;
-                            });
-                          } catch (error) {
-                            print('Erro ao enviar Liga1: $error');
-                          }
-                        }
-                      },
-                      onLongPressUp: () async {
-                        if (isConnected && !ativa) {
-                          try {
-                            await _sendMessage("Desliga1");
-                            setState(() {
-                              roscaLigada = false;
-                            });
-                          } catch (error) {
-                            print('Erro ao enviar Desliga1: $error');
-                          }
-                        }
-                      },
-                      child: Container(
-                        width: 140,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                          borderRadius: BorderRadius.circular(25),
-                          color: isConnected && !ativa
-                              ? Colors.green
-                              : Colors.grey,
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Ligar Rosca',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-// Configuration page
-class ConfigurationPage extends StatefulWidget {
-  final String connectedDeviceName;
-
-  const ConfigurationPage({Key? key, required this.connectedDeviceName}) : super(key: key);
-  @override
-  _ConfigurationPageState createState() => _ConfigurationPageState();
-}
-
-class _ConfigurationPageState extends State<ConfigurationPage> {
-  TimeOfDay selectedTime = TimeOfDay.now();
-  TimeOfDay selectedTimeFim = TimeOfDay.now();
-  final pesoController = TextEditingController();
-  String porcao = '1';
-  String subdivisaoPorcoes = '1';
-  String intervaloSubdivisao = '0';
-  String tempoIntervalo = "1";
-
-  int ano = 0;
-  int mes = 0;
-  int dia = 0;
-  int hora = 0;
-  int minuto = 0;
-  int segundo = 0;
-
-  int horaIni = 0;
-  int minutoIni = 0;
-  int horaFim = 0;
-  int minutoFim = 0;
-  int peso = 0;
-  int porcoes = 1;
-  int arremessos = 1;
-  int intervalo = 1;
-  bool checkboxValue =
-      false; // Variável booleana para armazenar o estado do Checkbox
-  String calibracao = '';
-
-  Future<void> _selectTime() async {
-    TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    if (time != null) {
-      setState(() {
-        selectedTime = time;
-      });
-    }
-  }
-
-  Future<void> _selectTimeFim() async {
-    TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: selectedTimeFim,
-    );
-    if (time != null) {
-      setState(() {
-        selectedTimeFim = time;
-      });
-    }
-  }
-
-  void _getDateTime() {
-    DateTime now = DateTime.now();
-    setState(() {
-      ano = now.year;
-      mes = now.month;
-      dia = now.day;
-      hora = now.hour;
-      minuto = now.minute;
-      segundo = now.second;
-    });
-  }
-
-  @override
-  void dispose() {
-    pesoController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _getDateTime();
-
-    // Configura um timer para atualizar a hora a cada segundo
-    Timer.periodic(const Duration(seconds: 1), (_) {
-      _getDateTime();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: Text('Configurar ${widget.connectedDeviceName}'),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        autofocus: true,
-                        style: const TextStyle(fontSize: 16),
-                        readOnly: true,
-                        onTap: _selectTime,
-                        controller: TextEditingController(
-                          text:
-                              '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Hora para o início da alimentação',
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintText: 'Informe a hora de início',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.access_time, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        readOnly: true,
-                        onTap: _selectTimeFim,
-                        controller: TextEditingController(
-                          text:
-                              '${selectedTimeFim.hour.toString().padLeft(2, '0')}:${selectedTimeFim.minute.toString().padLeft(2, '0')}',
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Hora para o fim da alimentação',
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintText: 'Informe a hora de término',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon:
-                              Icon(Icons.access_time_filled_outlined, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        autofocus: true,
-                        style: const TextStyle(fontSize: 16),
-                        controller: pesoController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Peso diário de ração em gramas',
-                          labelStyle: TextStyle(fontSize: 17),
-                          hintText: 'Informe o peso',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.scale_outlined, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          labelText: 'Dividir em quantas porções?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          prefixIcon:
-                              Icon(Icons.format_list_numbered, size: 24),
-                        ),
-                        controller: TextEditingController(text: porcao),
-                        readOnly: true,
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Selecione o número de porções'),
-                                content: DropdownButton<String>(
-                                  value: porcao,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      porcao = newValue ?? '';
-                                      porcoes = newValue != null
-                                          ? int.parse(newValue)
-                                          : 1;
-                                      Navigator.of(context).pop();
-                                    });
-                                  },
-                                  items:
-                                      List<DropdownMenuItem<String>>.generate(
-                                          30, (index) {
-                                    int value = index + 1;
-                                    return DropdownMenuItem<String>(
-                                      value: value.toString(),
-                                      child: Text(value.toString()),
-                                    );
-                                  }).toList(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          labelText: 'Deseja subdividir cada porção?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon:
-                              Icon(Icons.format_list_bulleted, size: 24),
-                        ),
-                        controller:
-                            TextEditingController(text: subdivisaoPorcoes),
-                        readOnly: true,
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text(
-                                    'Selecione em quantas vezes subdividir'),
-                                content: DropdownButton<String>(
-                                  value: subdivisaoPorcoes,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      subdivisaoPorcoes = newValue ?? '';
-                                      arremessos = int.parse(newValue ?? '1');
-                                      Navigator.of(context).pop();
-                                    });
-                                  },
-                                  items:
-                                      List<DropdownMenuItem<String>>.generate(5,
-                                          (index) {
-                                    int value = index + 1;
-                                    return DropdownMenuItem<String>(
-                                      value: value.toString(),
-                                      child: Text(value.toString()),
-                                    );
-                                  }).toList(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          labelText: 'Intervalo entre subdivisões(minutos)?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.more_time, size: 24),
-                        ),
-                        controller: TextEditingController(
-                            text: tempoIntervalo.toString()),
-                        readOnly: true,
-                        onTap: () {
-                          if (arremessos > 1) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title:
-                                      const Text('Selecione o intervalo em minutos'),
-                                  content: DropdownButton<String>(
-                                    value: tempoIntervalo.toString(),
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        tempoIntervalo = newValue ?? '';
-                                        intervalo = int.parse(newValue ?? '1');
-                                        Navigator.of(context).pop();
-                                      });
-                                    },
-                                    items:
-                                        List<DropdownMenuItem<String>>.generate(
-                                            5, (index) {
-                                      int value = index + 1;
-                                      return DropdownMenuItem<String>(
-                                        value: value.toString(),
-                                        child: Text(value.toString()),
-                                      );
-                                    }).toList(),
-                                  ),
-                                );
-                              },
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  Text(" $dia/$mes/$ano "),
-                  Text("$hora:$minuto:$segundo"),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      backgroundColor: Colors.green,
-                      minimumSize: const Size(100, 50),
-                    ),
-                    child: const Text('Cancelar', textScaleFactor: 1.7),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      backgroundColor: Colors.green,
-                      minimumSize: const Size(100, 50),
-                    ),
-                    child: const Text('Salvar', textScaleFactor: 1.7),
-                    onPressed: () {
-                      peso = int.tryParse(pesoController.text) ?? 0;
-                      horaIni = selectedTime.hour;
-                      minutoIni = selectedTime.minute;
-                      horaFim = selectedTimeFim.hour;
-                      minutoFim = selectedTimeFim.minute;
-
-                      if (arremessos <= 1) {
-                        setState(() {
-                          intervalo = 0;
-                        });
-                      }
-
-                      calibracao =
-                          'S,$horaIni,$minutoIni,$horaFim,$minutoFim,$peso,$porcoes,$arremessos,$intervalo,'
-                          '$ano,$mes,$dia,$hora,$minuto,$segundo,F';
-
-                      Navigator.pop(context, calibracao);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
