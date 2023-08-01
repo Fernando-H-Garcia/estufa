@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Eng & Life',
       theme: ThemeData(
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.indigo,
       ),
       navigatorKey: navigatorKey, // Assign the navigator key
       home: const MyHomePage(title: 'Eng & Life'),
@@ -57,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   TimeOfDay startTime = TimeOfDay(hour: 8, minute: 0); // Início da iluminação
   TimeOfDay endTime = TimeOfDay(hour: 18, minute: 0); // Fim da iluminação
   double luminosity = 3.0; // Intensidade luminosa selecionada (varia de 1 a 5)
+  double co2Level=150.0;
 
   int dia = 0;
   int mes = 0;
@@ -96,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.teal,
         toolbarHeight: 30,
         elevation: 5,
         title: Center(
@@ -247,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       _showToast(context, 'Conectado a ${device.name}');
       _receivedMessages.clear();
       Timer(const Duration(milliseconds: 1000), () async {
-        await _sendMessage("Info");
+        //await _sendMessage("Info");
       });
       Timer(const Duration(milliseconds: 1000), () {
         goToA300Tab();
@@ -747,53 +748,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   Color getSliderColor() {
     if (luminosity == 1) {
-      return Colors.blue;
+      return Colors.cyanAccent;
     } else if (luminosity == 2) {
-      return Colors.green;
+      return Colors.cyan;
     } else if (luminosity == 3) {
-      return Colors.yellow;
+      return Colors.lightBlueAccent;
     } else if (luminosity == 4) {
-      return Colors.orange;
+      return Colors.lightBlue;
     } else {
-      return Colors.red;
+      return Colors.blue;
     }
   }
 
 //TODO  Preciso alterar essa parte para que mostre na lista só o equipamento da estufa
   Widget _buildBluetoothTab() {
-    // Ordenar a lista de dispositivos, colocando os que começam com "A3" no topo
+    // Ordenar a lista de dispositivos
     _devicesList.sort((a, b) {
-      final pattern =
-          RegExp(r'A3(\d+)'); // Padrão para extrair os números após "A3"
-      final aMatch =
-          pattern.firstMatch(a.name ?? ''); // Correspondência nos nomes de a
-      final bMatch =
-          pattern.firstMatch(b.name ?? ''); // Correspondência nos nomes de b
-
-      // Verificar se a e b começam com "A3"
-      final aStartsWithA3 = a.name != null && a.name!.startsWith("A3");
-      final bStartsWithA3 = b.name != null && b.name!.startsWith("A3");
-
-      if (aStartsWithA3 && !bStartsWithA3) {
-        return -1; // a vem antes de b
-      } else if (!aStartsWithA3 && bStartsWithA3) {
-        return 1; // b vem antes de a
-      } else if (aStartsWithA3 && bStartsWithA3) {
-        // Extrair os números encontrados nos nomes de a e b
-        final aNumber = int.parse(aMatch?.group(1) ?? '0');
-        final bNumber = int.parse(bMatch?.group(1) ?? '0');
-
-        // Ordenar em ordem crescente com base nos números após "A3"
-        return aNumber.compareTo(bNumber);
-      } else {
-        return 0; // Manter a ordem original
-      }
+      final aName = a.name ?? '';
+      final bName = b.name ?? '';
+      return aName.compareTo(bName);
     });
-//TODO  Preciso alterar essa parte para que mostre na lista só o equipamento da estufa
-    // Filtrar os dispositivos cujos nomes iniciam com "A3"
-    final filteredDevicesList = _devicesList.where((device) {
-      return device.name != null && device.name!.startsWith("A3");
-    }).toList();
+
+    // Mostrar todos os dispositivos na lista
+    final filteredDevicesList = _devicesList;
 
     return SingleChildScrollView(
       child: Column(
@@ -829,7 +806,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               const Text('ON ', style: TextStyle(fontSize: 24)),
             ],
           ),
-          const Divider(thickness: 10, color: Colors.green),
+          const Divider(thickness: 5, color: Colors.grey),
           const SizedBox(height: 10),
           const Text(
             'O equipamento não aparece na lista? \nClique em (Buscar Equipamento).',
@@ -844,7 +821,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ), // Substitua pelo nome correto da função
           ),
           const SizedBox(height: 20),
-          const Divider(thickness: 10, color: Colors.green),
+          const Divider(thickness: 5, color: Colors.grey),
           const Text('Selecione o equipamento\n que deseja configurar:',
               style: TextStyle(fontSize: 20)),
           const Divider(thickness: 2, color: Colors.grey),
@@ -855,7 +832,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(10),
                   side: const BorderSide(
                     width: 6,
-                    color: Colors.green,
+                    color: Colors.grey,
                   ),
                 ),
                 child: ListTile(
@@ -895,7 +872,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
             ],
           ),
-          const Divider(thickness: 10, color: Colors.green),
+          const Divider(thickness: 5, color: Colors.grey),
           const SizedBox(height: 50),
         ],
       ),
@@ -904,266 +881,291 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
 // Method to build the A300 tab
   Widget _buildA300Tab() {
-    return SingleChildScrollView(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children:  [
-                  Card(
-                    child: ListTile(
-                      title: const Center(
-                        child: Text(
-                          'Temperatura',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                      subtitle: Center(
-                        child: Text(
-                          'Atual: $temperature°C | Alvo: $targetTemperature°C',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // @Todo Lógica para abrir a tela de edição da temperatura alvo
-                      // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
-                      // e atualizar o valor de targetTemperature com o valor selecionado pelo usuário
-                    },
-                    child: const Text('Editar Temperatura Alvo'),
-                  ),
-                  const SizedBox(height: 20),
-                  Card(
-                    child: ListTile(
-                      title: const Center(
-                        child: Text(
-                          'Umidade',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                      subtitle: Center(
-                        child: Text(
-                          'Atual: $humidity% | Alvo: $targetHumidity%',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // @Todo Lógica para abrir a tela de edição da umidade alvo
-                      // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
-                      // e atualizar o valor de targetHumidity com o valor selecionado pelo usuário
-                    },
-                    child: const Text('Editar Umidade Alvo'),
-                  ),
-                  const SizedBox(height: 20),
-                  Card(
-                    child: ListTile(
-                      title: const Center(
-                        child: Text(
-                          'Rotina da Iluminação',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      ),
-                      subtitle: Center(
-                        child: Text(
-                          'Início: ${startTime.format(context)} | Fim: ${endTime.format(context)}',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // @Todo Lógica para abrir a tela de edição da umidade alvo
-                      // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
-                      // e atualizar o valor de targetHumidity com o valor selecionado pelo usuário
-                    },
-                    child: const Text('Editar Iluminação'),
-                  ),
-                  const SizedBox(height: 20),
-                  Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          title: const Text(
-                            'Intensidade Luminosa',
-                            style: TextStyle(fontSize: 18),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.teal, // Defina a cor de fundo da aba aqui
+      ),
+      child: Container(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children:  [
+                      Card(
+                        child: ListTile(
+                          title: const Center(
+                            child: Text(
+                              'Temperatura',
+                              style: TextStyle(fontSize: 18),
+                            ),
                           ),
-                          subtitle: Text(
-                            'Selecionada: ${luminosity.toInt()}',
-                            style: const TextStyle(fontSize: 16),
+                          subtitle: Center(
+                            child: Text(
+                              'Atual: $temperature°C | Alvo: $targetTemperature°C',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           ),
                         ),
-                        SliderTheme(
-                          data: const SliderThemeData(
-                            trackHeight: 14, // Altura da barra
-                            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10), // Tamanho do indicador (ponteiro)
-                            overlayShape: RoundSliderOverlayShape(overlayRadius: 20), // Tamanho da área de toque
-                            //trackShape: CustomTrackShape(), // Shape personalizado para a barra
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // @Todo Lógica para abrir a tela de edição da temperatura alvo
+                          // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
+                          // e atualizar o valor de targetTemperature com o valor selecionado pelo usuário
+                        },
+                        child: const Text('Editar Temperatura Alvo'),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Card(
+                              child: ListTile(
+                                title: const Center(
+                                  child: Text(
+                                    'Umidade',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                                subtitle: Center(
+                                  child: Text(
+                                    'Atual: $humidity%',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Slider(
-                            value: luminosity,
-                            min: 1,
-                            max: 5,
-                            divisions: 4,
-                            activeColor: getSliderColor(),
-                            onChanged: (value) {
-                              setState(() {
-                                luminosity = value;
-                              });
-                            },
+                          const SizedBox(width: 10), // Espaçamento horizontal entre os Cards
+                          Expanded(
+                            child: Card(
+                              child: ListTile(
+                                title: const Center(
+                                  child: Text(
+                                    'Nível de CO2',
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                                subtitle: Center(
+                                  child: Text(
+                                    'Atual: $co2Level',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      Card(
+                        child: ListTile(
+                          title: const Center(
+                            child: Text(
+                              'Rotina da Iluminação',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                          subtitle: Center(
+                            child: Text(
+                              'Início: ${startTime.format(context)} | Fim: ${endTime.format(context)}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  /*Container(
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(25),
-                        topRight: Radius.circular(25.0),
                       ),
-                      color: Colors
-                          .green, // Definir a cor de fundo da AppBar como verde
-                    ),
-                    child: AppBar(
-                      backgroundColor: Colors.transparent,
-                      // Definir a cor de fundo da AppBar como transparente
-                      elevation: 0,
-                      // Remover sombra da AppBar
-                      centerTitle: true,
-                      title: Text(
-                        'Mensagens recebidas do $_connectedDeviceName',
-                        style: const TextStyle(fontSize: 18),
+                      ElevatedButton(
+                        onPressed: () {
+                          // @Todo Lógica para abrir a tela de edição da umidade alvo
+                          // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
+                          // e atualizar o valor de targetHumidity com o valor selecionado pelo usuário
+                        },
+                        child: const Text('Editar Iluminação'),
                       ),
-                    ),
-                  ),*/
-                  //const Divider(thickness: 2, color: Colors.grey),
-                  const SizedBox(height: 2),
-                  /*SizedBox(
-                    height: 400,
-                    child: isConnected
-                        ? isCalibrating
-                            ? const Center(
+                      const SizedBox(height: 20),
+                      Card(
+                        child: Column(
+                          children: [
+                            ListTile(
+                              title: const Text(
+                                'Intensidade Luminosa',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              subtitle: Text(
+                                'Selecionada: ${luminosity.toInt()}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            SliderTheme(
+                              data: const SliderThemeData(
+                                trackHeight: 14, // Altura da barra
+                                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10), // Tamanho do indicador (ponteiro)
+                                overlayShape: RoundSliderOverlayShape(overlayRadius: 20), // Tamanho da área de toque
+                                //trackShape: CustomTrackShape(), // Shape personalizado para a barra
+                              ),
+                              child: Slider(
+                                value: luminosity,
+                                min: 1,
+                                max: 5,
+                                divisions: 4,
+                                activeColor: getSliderColor(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    luminosity = value;
+                                  });
+                                },label: '${luminosity.toInt()}',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      /*Container(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(25),
+                            topRight: Radius.circular(25.0),
+                          ),
+                          color: Colors
+                              .green, // Definir a cor de fundo da AppBar como verde
+                        ),
+                        child: AppBar(
+                          backgroundColor: Colors.transparent,
+                          // Definir a cor de fundo da AppBar como transparente
+                          elevation: 0,
+                          // Remover sombra da AppBar
+                          centerTitle: true,
+                          title: Text(
+                            'Mensagens recebidas do $_connectedDeviceName',
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),*/
+                      //const Divider(thickness: 2, color: Colors.grey),
+                      const SizedBox(height: 2),
+                      /*SizedBox(
+                        height: 400,
+                        child: isConnected
+                            ? isCalibrating
+                                ? const Center(
+                                    child: Text(
+                                      'Calibração em andamento!',
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 20,
+                                        fontFamily: 'Noto Sans',
+                                      ),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: _receivedMessages.length,
+                                    itemBuilder: (context, index) {
+                                      String processedText =
+                                          _receivedMessages[index];
+                                      return Text(
+                                        processedText,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontFamily: 'Noto Sans',
+                                        ),
+                                      );
+                                    },
+                                  )
+                            : const Center(
                                 child: Text(
-                                  'Calibração em andamento!',
+                                  'Equipamento Desconectado!',
                                   style: TextStyle(
-                                    color: Colors.green,
+                                    color: Colors.red,
                                     fontSize: 20,
                                     fontFamily: 'Noto Sans',
                                   ),
                                 ),
-                              )
-                            : ListView.builder(
-                                itemCount: _receivedMessages.length,
-                                itemBuilder: (context, index) {
-                                  String processedText =
-                                      _receivedMessages[index];
-                                  return Text(
-                                    processedText,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: 'Noto Sans',
-                                    ),
-                                  );
-                                },
-                              )
-                        : const Center(
-                            child: Text(
-                              'Equipamento Desconectado!',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 20,
-                                fontFamily: 'Noto Sans',
                               ),
+                      ),*/
+                    ],
+                  ),
+                ),
+                /*Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                        height: 70,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(50.0),
                             ),
+                            backgroundColor: Colors.green,
                           ),
-                  ),*/
-                ],
-              ),
-            ),
-            /*Padding(
-              padding: const EdgeInsets.all(1.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(
-                    height: 70,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50.0),
-                        ),
-                        backgroundColor: Colors.green,
-                      ),
-                      onPressed: isConnected
-                          ? () async {
-                              _receivedMessages.clear();
-                              await _sendMessage("Info");
-                              // Função a ser executada ao pressionar o novo botão
-                            }
-                          : null,
-                      child: const Icon(
-                        Icons.info_outline_rounded,
-                        color: Colors.white,
-                        size: 60,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10), // Espaçamento entre os botões
-                  SizedBox(
-                    width: 250, // Defina a largura desejada aqui
-                    height: 70,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25.0),
-                        ),
-                        backgroundColor: Colors.green,
-                      ),
-                      onPressed: isConnected && !isCalibrating
-                          ? () async {
-                              if (isConnected) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => ConfigurationPage(connectedDeviceName: _connectedDeviceName,)),
-                                );
-                                // Verifica se a string de retorno não é nula
-                                if (calibracao != null && isConnected) {
-                                  // Atualize a variável calibracao com a string retornada
-                                  setState(() async {
-                                    calibracao = calibracao;
-                                    try {
-                                      _receivedMessages.clear();
-                                      await _sendMessage(calibracao);
-                                    } catch (error) {
-                                      // Lidar com o erro (timeout ou outro erro)
-                                      print(
-                                          'Erro ao enviar a mensagem calibracao: $error');
-                                    }
-                                  });
+                          onPressed: isConnected
+                              ? () async {
+                                  _receivedMessages.clear();
+                                  await _sendMessage("Info");
+                                  // Função a ser executada ao pressionar o novo botão
                                 }
-                              }
-                            }
-                          : null,
-                      child: Text(
-                        'Configurar $_connectedDeviceName',
-                        textScaleFactor: 1.7,
+                              : null,
+                          child: const Icon(
+                            Icons.info_outline_rounded,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10), // Espaçamento entre os botões
+                      SizedBox(
+                        width: 250, // Defina a largura desejada aqui
+                        height: 70,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                          onPressed: isConnected && !isCalibrating
+                              ? () async {
+                                  if (isConnected) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => ConfigurationPage(connectedDeviceName: _connectedDeviceName,)),
+                                    );
+                                    // Verifica se a string de retorno não é nula
+                                    if (calibracao != null && isConnected) {
+                                      // Atualize a variável calibracao com a string retornada
+                                      setState(() async {
+                                        calibracao = calibracao;
+                                        try {
+                                          _receivedMessages.clear();
+                                          await _sendMessage(calibracao);
+                                        } catch (error) {
+                                          // Lidar com o erro (timeout ou outro erro)
+                                          print(
+                                              'Erro ao enviar a mensagem calibracao: $error');
+                                        }
+                                      });
+                                    }
+                                  }
+                                }
+                              : null,
+                          child: Text(
+                            'Configurar $_connectedDeviceName',
+                            textScaleFactor: 1.7,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),*/
-          ],
-        ), //row aqui
+                ),*/
+              ],
+            ), //row aqui
+          ),
+        ),
       ),
     );
   }
