@@ -41,11 +41,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool isListening = false;
 
   bool reenviarMensagem =
-      false; // Variável de controle para reenvio de mensagem
+  false; // Variável de controle para reenvio de mensagem
 
   bool get isConnected =>
       connection != null &&
-      connection!.isConnected; // Flag to indicate if device is still connected
+          connection!
+              .isConnected; // Flag to indicate if device is still connected
 
 
   String _connectedDeviceName = '';
@@ -57,14 +58,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   TimeOfDay startTime = TimeOfDay(hour: 8, minute: 0); // Início da iluminação
   TimeOfDay endTime = TimeOfDay(hour: 18, minute: 0); // Fim da iluminação
   double luminosity = 3.0; // Intensidade luminosa selecionada (varia de 1 a 5)
-  double co2Level=150.0;
+  double co2Level = 150.0;
 
-  int dia = 0;
-  int mes = 0;
   int ano = 0;
+  int mes = 0;
+  int dia = 0;
   int hora = 0;
   int minuto = 0;
   int segundo = 0;
+
+  String horaIniFormatada = "";
+  String minutoIniFormatado = "";
+  String horaFimFormatada = "";
+  String minutoFimFormatado = "";
+  String textoFormatado ="";
 
   Completer<void> ackCompleter = Completer<void>();
   Uint8List? encodedMessage; // Variável para armazenar a mensagem codificada
@@ -83,13 +90,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   // Declare the TextEditingController
   final TextEditingController _messageTextFieldController =
-      TextEditingController();
+  TextEditingController();
 
   // Connected device
   BluetoothDevice? _connectedDevice;
 
   // Connection with the device
   BluetoothConnection? connection;
+
 // Declare a stream subscription for discovery events
   StreamSubscription<BluetoothDiscoveryResult>? _streamSubscription;
 
@@ -129,6 +137,11 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     Wakelock.enable();
+
+    //Timer para pegar hora e data atual
+    Timer.periodic(const Duration(seconds: 1), (_) {
+      _getDateTime();
+    });
     // Initialize tab controller
     _tabController = TabController(length: 2, vsync: this);
 
@@ -168,6 +181,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           //_startDiscovery();
         }
       });
+    });
+  }
+
+  void _getDateTime() {
+    DateTime now = DateTime.now();
+    setState(() {
+      ano = now.year;
+      mes = now.month;
+      dia = now.day;
+      hora = now.hour;
+      minuto = now.minute;
+      segundo = now.second;
     });
   }
 
@@ -309,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       });
 
       //_pressCount =
-          1; // Reseta contador da calibração caso desconecte no meio da calibração
+      1; // Reseta contador da calibração caso desconecte no meio da calibração
     });
 
     setState(() {
@@ -340,7 +365,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           print('Mensagem($messageWithCRC) enviada e ACK recebido');
           // Mensagem enviada com sucesso, ACK recebido
           reenviarMensagem =
-              false; // Define que a próxima mensagem não precisa ser reenviada
+          false; // Define que a próxima mensagem não precisa ser reenviada
           return true;
         } catch (erro) {
           // Timeout expirado ou erro ao aguardar o ACK
@@ -360,7 +385,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     if (reenviarMensagem) {
       // Verifica se a mensagem anterior precisa ser reenviada
       reenviarMensagem =
-          false; // Define que a próxima mensagem não precisa ser reenviada
+      false; // Define que a próxima mensagem não precisa ser reenviada
       return await _sendMessage(ultima); // Reenvia a mensagem anterior
     }
 
@@ -473,7 +498,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       "RecA=": "O peso digitado foi=",
       "RecB=": "O peso digitado foi=",
       "C2=":
-          "\nRecoloque o pote para armazenar a segunda porção de ração, aperte o botão Calibrar e aguarde!\n",
+      "\nRecoloque o pote para armazenar a segunda porção de ração, aperte o botão Calibrar e aguarde!\n",
       "FimC=": "Calibração Finalizada!",
       "FimA=": "Fim do arremesso!",
       "FimP=": "Fim da porção:",
@@ -539,13 +564,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           } else if (code == "H=") {
             final d = value.substring(0, value.indexOf("_"));
             final m =
-                value.substring(value.indexOf("_") + 1, value.lastIndexOf("_"));
+            value.substring(value.indexOf("_") + 1, value.lastIndexOf("_"));
             final a =
-                value.substring(value.lastIndexOf("_") + 1, value.indexOf(" "));
+            value.substring(value.lastIndexOf("_") + 1, value.indexOf(" "));
             final h =
-                value.substring(value.indexOf(" ") + 1, value.indexOf(":"));
+            value.substring(value.indexOf(" ") + 1, value.indexOf(":"));
             final mn =
-                value.substring(value.indexOf(":") + 1, value.lastIndexOf(":"));
+            value.substring(value.indexOf(":") + 1, value.lastIndexOf(":"));
             final s = value.substring(value.lastIndexOf(":") + 1);
 
             final formattedDate = "$d/$m/$a $h:$mn:$s";
@@ -586,7 +611,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           } else if (code == "Lib=") {
             //ativa campo para digitar peso
             setState(() {
-             // ativa = true;
+              // ativa = true;
             });
             final result = "${codeMap[code]}";
             return result;
@@ -687,7 +712,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           } else if (code == "ITemp=") {
             final hora = value.substring(0, value.indexOf(":"));
             final minuto =
-                value.substring(value.indexOf(":") + 1, value.lastIndexOf(":"));
+            value.substring(value.indexOf(":") + 1, value.lastIndexOf(":"));
             final segundo = value.substring(value.lastIndexOf(":") + 1);
             final result = "${codeMap[code]}:\n$hora:$minuto:$segundo";
             print("Input text: $text");
@@ -732,7 +757,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   void _refreshList() async {
     final List<BluetoothDevice> devices =
-        await FlutterBluetoothSerial.instance.getBondedDevices();
+    await FlutterBluetoothSerial.instance.getBondedDevices();
     setState(() {
       _devicesList = devices;
     });
@@ -757,6 +782,35 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
       return Colors.lightBlue;
     } else {
       return Colors.blue;
+    }
+  }
+
+  Future<void> _selectTime({required bool initial}) async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        if (initial) {
+          horaIni = pickedTime.hour;
+          minutoIni = pickedTime.minute;
+          segundoIni =
+          0; // Neste exemplo, estou definindo o segundo inicial como 0, mas você pode mudar conforme sua necessidade.
+        } else {
+          horaFim = pickedTime.hour;
+          minutoFim = pickedTime.minute;
+          segundoFim =
+          0; // Neste exemplo, estou definindo o segundo final como 0, mas você pode mudar conforme sua necessidade.
+        }
+        horaIniFormatada = horaIni.toString().padLeft(2, '0');
+        minutoIniFormatado = minutoIni.toString().padLeft(2, '0');
+        horaFimFormatada = horaFim.toString().padLeft(2, '0');
+        minutoFimFormatado = minutoFim.toString().padLeft(2, '0');
+        textoFormatado =
+            'Início: $horaIniFormatada:$minutoIniFormatado:00 | Fim: $horaFimFormatada:$minutoFimFormatado:00';
+      });
     }
   }
 
@@ -861,7 +915,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ElevatedButton.icon(
                 onPressed: () async {
                   final List<BluetoothDevice> devices =
-                      await FlutterBluetoothSerial.instance.getBondedDevices();
+                  await FlutterBluetoothSerial.instance.getBondedDevices();
                   setState(() {
                     _devicesList = devices;
                   });
@@ -879,6 +933,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
+
+  int horaIni = 0;
+  int minutoIni = 0;
+  int segundoIni = 0;
+  int horaFim = 0;
+  int minutoFim = 0;
+  int segundoFim = 0;
+
+
 // Method to build the A300 tab
   Widget _buildA300Tab() {
     return DecoratedBox(
@@ -894,7 +957,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
-                    children:  [
+                    children: [
                       Card(
                         child: ListTile(
                           title: const Center(
@@ -940,7 +1003,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10), // Espaçamento horizontal entre os Cards
+                          const SizedBox(width: 10),
+                          // Espaçamento horizontal entre os Cards
                           Expanded(
                             child: Card(
                               child: ListTile(
@@ -952,7 +1016,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                 ),
                                 subtitle: Center(
                                   child: Text(
-                                    'Atual: $co2Level',
+                                    'Atual: $co2Level ppm',
                                     style: const TextStyle(fontSize: 16),
                                   ),
                                 ),
@@ -973,7 +1037,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           ),
                           subtitle: Center(
                             child: Text(
-                              'Início: ${startTime.format(context)} | Fim: ${endTime.format(context)}',
+                              textoFormatado,
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),
@@ -981,187 +1045,96 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // @Todo Lógica para abrir a tela de edição da umidade alvo
-                          // Aqui você pode chamar uma nova página ou exibir um diálogo de edição
-                          // e atualizar o valor de targetHumidity com o valor selecionado pelo usuário
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return Dialog(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Selecione a Hora Inicial:'),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _selectTime(initial: true);
+                                        },
+                                        child: Text('Escolher Hora Inicial'),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text('Selecione a Hora Final:'),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          _selectTime(initial: false);
+                                        },
+                                        child: Text('Escolher Hora Final'),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment
+                                            .spaceEvenly,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // @Todo: Adicione a lógica para o botão "Cancelar" se necessário.
+                                              // Neste exemplo, o botão simplesmente fecha o diálogo sem fazer nada.
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text('Cancelar'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await _sendMessage("H,$horaIni,$minutoIni,$horaFim,$minutoFim,$ano,$mes,$dia,$hora,$minuto,$segundo,F");
+                                              // @Todo: Adicione a lógica para salvar as horas selecionadas nas variáveis
+
+                                              Navigator.pop(
+                                                  context); // Fechar o diálogo após salvar as horas.
+                                            },
+                                            child: Text('Salvar'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
                         },
-                        child: const Text('Editar Iluminação'),
+                        child: Text('Alterar Iluminação'),
                       ),
+
+
                       const SizedBox(height: 20),
                       Card(
                         child: Column(
                           children: [
                             ListTile(
                               title: const Text(
-                                'Intensidade Luminosa',
+                                'Lampadas Selecionadas',
                                 style: TextStyle(fontSize: 18),
                               ),
-                              subtitle: Text(
-                                'Selecionada: ${luminosity.toInt()}',
-                                style: const TextStyle(fontSize: 16),
-                              ),
+
                             ),
-                            SliderTheme(
-                              data: const SliderThemeData(
-                                trackHeight: 14, // Altura da barra
-                                thumbShape: RoundSliderThumbShape(enabledThumbRadius: 10), // Tamanho do indicador (ponteiro)
-                                overlayShape: RoundSliderOverlayShape(overlayRadius: 20), // Tamanho da área de toque
-                                //trackShape: CustomTrackShape(), // Shape personalizado para a barra
-                              ),
-                              child: Slider(
-                                value: luminosity,
-                                min: 1,
-                                max: 5,
-                                divisions: 4,
-                                activeColor: getSliderColor(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    luminosity = value;
-                                  });
-                                },label: '${luminosity.toInt()}',
-                              ),
+                            SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildBolinha(1),
+                                _buildBolinha(2),
+                                _buildBolinha(3),
+                                _buildBolinha(4),
+                                _buildBolinha(5),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                      /*Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(25),
-                            topRight: Radius.circular(25.0),
-                          ),
-                          color: Colors
-                              .green, // Definir a cor de fundo da AppBar como verde
-                        ),
-                        child: AppBar(
-                          backgroundColor: Colors.transparent,
-                          // Definir a cor de fundo da AppBar como transparente
-                          elevation: 0,
-                          // Remover sombra da AppBar
-                          centerTitle: true,
-                          title: Text(
-                            'Mensagens recebidas do $_connectedDeviceName',
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                        ),
-                      ),*/
-                      //const Divider(thickness: 2, color: Colors.grey),
+
                       const SizedBox(height: 2),
-                      /*SizedBox(
-                        height: 400,
-                        child: isConnected
-                            ? isCalibrating
-                                ? const Center(
-                                    child: Text(
-                                      'Calibração em andamento!',
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                        fontSize: 20,
-                                        fontFamily: 'Noto Sans',
-                                      ),
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    itemCount: _receivedMessages.length,
-                                    itemBuilder: (context, index) {
-                                      String processedText =
-                                          _receivedMessages[index];
-                                      return Text(
-                                        processedText,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontFamily: 'Noto Sans',
-                                        ),
-                                      );
-                                    },
-                                  )
-                            : const Center(
-                                child: Text(
-                                  'Equipamento Desconectado!',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 20,
-                                    fontFamily: 'Noto Sans',
-                                  ),
-                                ),
-                              ),
-                      ),*/
+
                     ],
                   ),
                 ),
-                /*Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        height: 70,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(50.0),
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                          onPressed: isConnected
-                              ? () async {
-                                  _receivedMessages.clear();
-                                  await _sendMessage("Info");
-                                  // Função a ser executada ao pressionar o novo botão
-                                }
-                              : null,
-                          child: const Icon(
-                            Icons.info_outline_rounded,
-                            color: Colors.white,
-                            size: 60,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10), // Espaçamento entre os botões
-                      SizedBox(
-                        width: 250, // Defina a largura desejada aqui
-                        height: 70,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                          onPressed: isConnected && !isCalibrating
-                              ? () async {
-                                  if (isConnected) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => ConfigurationPage(connectedDeviceName: _connectedDeviceName,)),
-                                    );
-                                    // Verifica se a string de retorno não é nula
-                                    if (calibracao != null && isConnected) {
-                                      // Atualize a variável calibracao com a string retornada
-                                      setState(() async {
-                                        calibracao = calibracao;
-                                        try {
-                                          _receivedMessages.clear();
-                                          await _sendMessage(calibracao);
-                                        } catch (error) {
-                                          // Lidar com o erro (timeout ou outro erro)
-                                          print(
-                                              'Erro ao enviar a mensagem calibracao: $error');
-                                        }
-                                      });
-                                    }
-                                  }
-                                }
-                              : null,
-                          child: Text(
-                            'Configurar $_connectedDeviceName',
-                            textScaleFactor: 1.7,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),*/
               ],
             ), //row aqui
           ),
@@ -1170,405 +1143,64 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     );
   }
 
-}
+  bool selected1 = false;
+  bool selected2 = false;
+  bool selected3 = false;
+  bool selected4 = false;
+  bool selected5 = false;
 
-// Configuration page
-class ConfigurationPage extends StatefulWidget {
-  final String connectedDeviceName;
+  Widget _buildBolinha(int numero) {
+    bool selected = false;
 
-  const ConfigurationPage({Key? key, required this.connectedDeviceName}) : super(key: key);
-  @override
-  _ConfigurationPageState createState() => _ConfigurationPageState();
-}
-
-class _ConfigurationPageState extends State<ConfigurationPage> {
-  TimeOfDay selectedTime = TimeOfDay.now();
-  TimeOfDay selectedTimeFim = TimeOfDay.now();
-  final pesoController = TextEditingController();
-  String porcao = '1';
-  String subdivisaoPorcoes = '1';
-  String intervaloSubdivisao = '0';
-  String tempoIntervalo = "1";
-
-  int ano = 0;
-  int mes = 0;
-  int dia = 0;
-  int hora = 0;
-  int minuto = 0;
-  int segundo = 0;
-
-  int horaIni = 0;
-  int minutoIni = 0;
-  int horaFim = 0;
-  int minutoFim = 0;
-  int peso = 0;
-  int porcoes = 1;
-  int arremessos = 1;
-  int intervalo = 1;
-  bool checkboxValue =
-  false; // Variável booleana para armazenar o estado do Checkbox
-  String calibracao = '';
-
-  Future<void> _selectTime() async {
-    TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    if (time != null) {
-      setState(() {
-        selectedTime = time;
-      });
+    // Defina o estado de cada bolinha de acordo com a variável correspondente
+    if (numero == 1) {
+      selected = selected1;
+    } else if (numero == 2) {
+      selected = selected2;
+    } else if (numero == 3) {
+      selected = selected3;
+    } else if (numero == 4) {
+      selected = selected4;
+    } else if (numero == 5) {
+      selected = selected5;
     }
-  }
 
-  Future<void> _selectTimeFim() async {
-    TimeOfDay? time = await showTimePicker(
-      context: context,
-      initialTime: selectedTimeFim,
-    );
-    if (time != null) {
-      setState(() {
-        selectedTimeFim = time;
-      });
-    }
-  }
-
-  void _getDateTime() {
-    DateTime now = DateTime.now();
-    setState(() {
-      ano = now.year;
-      mes = now.month;
-      dia = now.day;
-      hora = now.hour;
-      minuto = now.minute;
-      segundo = now.second;
-    });
-  }
-
-  @override
-  void dispose() {
-    pesoController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _getDateTime();
-
-    // Configura um timer para atualizar a hora a cada segundo
-    Timer.periodic(const Duration(seconds: 1), (_) {
-      _getDateTime();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: Text('Configurar ${widget.connectedDeviceName}'),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Column(
-                children: <Widget>[
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        autofocus: true,
-                        style: const TextStyle(fontSize: 16),
-                        readOnly: true,
-                        onTap: _selectTime,
-                        controller: TextEditingController(
-                          text:
-                          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Hora para Ligar Iluminação',
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintText: 'Informe a hora de início',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.access_time, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        readOnly: true,
-                        onTap: _selectTimeFim,
-                        controller: TextEditingController(
-                          text:
-                          '${selectedTimeFim.hour.toString().padLeft(2, '0')}:${selectedTimeFim.minute.toString().padLeft(2, '0')}',
-                        ),
-                        keyboardType: TextInputType.datetime,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Hora para Desligar Iluminação',
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintText: 'Informe a hora de término',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon:
-                          Icon(Icons.access_time_filled_outlined, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        autofocus: true,
-                        style: const TextStyle(fontSize: 16),
-                        controller: pesoController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Peso diário de ração em gramas',
-                          labelStyle: TextStyle(fontSize: 17),
-                          hintText: 'Informe o peso',
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.scale_outlined, size: 24),
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          isDense: true,
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          labelText: 'Dividir em quantas porções?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          prefixIcon:
-                          Icon(Icons.format_list_numbered, size: 24),
-                        ),
-                        controller: TextEditingController(text: porcao),
-                        readOnly: true,
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Selecione o número de porções'),
-                                content: DropdownButton<String>(
-                                  value: porcao,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      porcao = newValue ?? '';
-                                      porcoes = newValue != null
-                                          ? int.parse(newValue)
-                                          : 1;
-                                      Navigator.of(context).pop();
-                                    });
-                                  },
-                                  items:
-                                  List<DropdownMenuItem<String>>.generate(
-                                      30, (index) {
-                                    int value = index + 1;
-                                    return DropdownMenuItem<String>(
-                                      value: value.toString(),
-                                      child: Text(value.toString()),
-                                    );
-                                  }).toList(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          labelText: 'Deseja subdividir cada porção?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon:
-                          Icon(Icons.format_list_bulleted, size: 24),
-                        ),
-                        controller:
-                        TextEditingController(text: subdivisaoPorcoes),
-                        readOnly: true,
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text(
-                                    'Selecione em quantas vezes subdividir'),
-                                content: DropdownButton<String>(
-                                  value: subdivisaoPorcoes,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      subdivisaoPorcoes = newValue ?? '';
-                                      arremessos = int.parse(newValue ?? '1');
-                                      Navigator.of(context).pop();
-                                    });
-                                  },
-                                  items:
-                                  List<DropdownMenuItem<String>>.generate(5,
-                                          (index) {
-                                        int value = index + 1;
-                                        return DropdownMenuItem<String>(
-                                          value: value.toString(),
-                                          child: Text(value.toString()),
-                                        );
-                                      }).toList(),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: TextField(
-                        style: const TextStyle(fontSize: 16),
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 8),
-                          labelText: 'Intervalo entre subdivisões(minutos)?',
-                          suffixIcon: Icon(Icons.arrow_drop_down, size: 24),
-                          border: OutlineInputBorder(),
-                          labelStyle: TextStyle(fontSize: 20),
-                          hintStyle: TextStyle(fontSize: 16),
-                          prefixIcon: Icon(Icons.more_time, size: 24),
-                        ),
-                        controller: TextEditingController(
-                            text: tempoIntervalo.toString()),
-                        readOnly: true,
-                        onTap: () {
-                          if (arremessos > 1) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title:
-                                  const Text('Selecione o intervalo em minutos'),
-                                  content: DropdownButton<String>(
-                                    value: tempoIntervalo.toString(),
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        tempoIntervalo = newValue ?? '';
-                                        intervalo = int.parse(newValue ?? '1');
-                                        Navigator.of(context).pop();
-                                      });
-                                    },
-                                    items:
-                                    List<DropdownMenuItem<String>>.generate(
-                                        5, (index) {
-                                      int value = index + 1;
-                                      return DropdownMenuItem<String>(
-                                        value: value.toString(),
-                                        child: Text(value.toString()),
-                                      );
-                                    }).toList(),
-                                  ),
-                                );
-                              },
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  Text(" $dia/$mes/$ano "),
-                  Text("$hora:$minuto:$segundo"),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      backgroundColor: Colors.green,
-                      minimumSize: const Size(100, 50),
-                    ),
-                    child: const Text('Cancelar', textScaleFactor: 1.7),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      backgroundColor: Colors.green,
-                      minimumSize: const Size(100, 50),
-                    ),
-                    child: const Text('Salvar', textScaleFactor: 1.7),
-                    onPressed: () {
-                      peso = int.tryParse(pesoController.text) ?? 0;
-                      horaIni = selectedTime.hour;
-                      minutoIni = selectedTime.minute;
-                      horaFim = selectedTimeFim.hour;
-                      minutoFim = selectedTimeFim.minute;
-
-                      if (arremessos <= 1) {
-                        setState(() {
-                          intervalo = 0;
-                        });
-                      }
-
-                      calibracao =
-                      'S,$horaIni,$minutoIni,$horaFim,$minutoFim,$peso,$porcoes,$arremessos,$intervalo,'
-                          '$ano,$mes,$dia,$hora,$minuto,$segundo,F';
-
-                      Navigator.pop(context, calibracao);
-                    },
-                  ),
-                ],
-              ),
-            ],
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          // Altere o estado da bolinha correspondente ao número ao clicar nela
+          if (numero == 1) {
+            selected1 = !selected1;
+          } else if (numero == 2) {
+            selected2 = !selected2;
+          } else if (numero == 3) {
+            selected3 = !selected3;
+          } else if (numero == 4) {
+            selected4 = !selected4;
+          } else if (numero == 5) {
+            selected5 = !selected5;
+          }
+        });
+      },
+      child: Container(
+        width: 30,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? Colors.green : Colors.red,
+        ),
+        child: Center(
+          child: Text(
+            '$numero',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
           ),
         ),
       ),
     );
   }
+
+
 }
