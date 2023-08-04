@@ -1167,10 +1167,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     return GestureDetector(
       onTap: () {
-        setState(() {
+        setState(()  {
           // Altere o estado da bolinha correspondente ao número ao clicar nela
           if (numero == 1) {
             selected1 = !selected1;
+
+            //Todo Nessa parte tenho que colocar a logica para ligar e desligar as lampadas, a logica a seguir foi testada preciso alterar o código enviado
+            if(selected1==true) {
+              _sendMessage("Desliga1");
+            }
+            else if(selected1==false){
+              _sendMessage("Liga1");
+            }
+
+
           } else if (numero == 2) {
             selected2 = !selected2;
           } else if (numero == 3) {
@@ -1181,6 +1191,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             selected5 = !selected5;
           }
         });
+
       },
       child: Container(
         width: 30,
