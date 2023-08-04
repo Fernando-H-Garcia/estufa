@@ -1110,7 +1110,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                           children: [
                             ListTile(
                               title: const Text(
-                                'Lampadas Selecionadas',
+                                'Selecione as Lampadas que devem ser ligadas na rotina:',
                                 style: TextStyle(fontSize: 18),
                               ),
 
