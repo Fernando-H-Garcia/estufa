@@ -1171,16 +1171,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
           // Altere o estado da bolinha correspondente ao número ao clicar nela
           if (numero == 1) {
             selected1 = !selected1;
-
-            //Todo Nessa parte tenho que colocar a logica para ligar e desligar as lampadas, a logica a seguir foi testada preciso alterar o código enviado
-            if(selected1==true) {
-              _sendMessage("Desliga1");
-            }
-            else if(selected1==false){
-              _sendMessage("Liga1");
-            }
-
-
           } else if (numero == 2) {
             selected2 = !selected2;
           } else if (numero == 3) {
@@ -1191,6 +1181,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             selected5 = !selected5;
           }
         });
+        // Converter as variáveis booleanas para inteiros (0 ou 1)
+        int selected1Int = selected1 ? 1 : 0;
+        int selected2Int = selected2 ? 1 : 0;
+        int selected3Int = selected3 ? 1 : 0;
+        int selected4Int = selected4 ? 1 : 0;
+        int selected5Int = selected5 ? 1 : 0;
+        _sendMessage("L,$selected1Int,$selected2Int,$selected3Int,$selected4Int,$selected5Int,F");
 
       },
       child: Container(
